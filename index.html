@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>App Frame Builder & Live Customizer</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Montserrat:wght@600;700&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Dynamic Theme Variables */
+        :root {
+            --bg-container: #072b13;
+            --body-bg: #031409;
+            --btn-bg-start: #0a4d25;
+            --btn-bg-end: #042611;
+            --gold-border: #D4AF37;
+            --gold-border-inner: #f9e29c;
+            --text-color: #fce7aa;
+            --text-hover: #ffffff;
+            --font-family: 'Cinzel', serif;
+            --header-height: 48px;
+            --footer-height: 52px;
+        }
+
+        body {
+            background-color: #020b05;
+            color: #e2e8f0;
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* Phone Screen Frame Simulation */
+        .preview-phone-frame {
+            width: 100%;
+            max-width: 412px;
+            height: 732px;
+            border: 5px solid #232d3d;
+            border-radius: 28px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.95), 0 0 25px rgba(212, 175, 55, 0.15);
+            background-color: var(--body-bg);
+            margin: 0 auto;
+        }
+
+        /* Phone Top Notch Speaker */
+        .preview-phone-frame::before {
+            content: '';
+            position: absolute;
+            top: 7px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70px;
+            height: 4px;
+            background-color: #1e293b;
+            border-radius: 4px;
+            z-index: 200;
+        }
+
+        /* Header Bar */
+        .preview-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--header-height);
+            background-color: var(--bg-container);
+            border-bottom: 1.5px solid var(--gold-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 10px 0 10px;
+            z-index: 100;
+            box-sizing: border-box;
+        }
+
+        .preview-menu-btn {
+            background: linear-gradient(180deg, var(--btn-bg-start) 0%, var(--btn-bg-end) 100%);
+            border: 1.5px solid var(--gold-border);
+            color: var(--text-color);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: var(--font-family);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: inset 0 1px 1px var(--gold-border-inner);
+            transition: transform 0.15s ease;
+        }
+        .preview-menu-btn:active { transform: scale(0.96); }
+
+        .preview-header-title {
+            color: var(--text-color);
+            font-family: var(--font-family);
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 8px;
+            flex: 1;
+        }
+
+        /* Sidebar Drawer */
+        .preview-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(3px);
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .preview-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .preview-drawer {
+            position: absolute;
+            top: 0;
+            left: -285px;
+            width: 285px;
+            height: 100%;
+            background-color: var(--bg-container);
+            border-right: 2px solid var(--gold-border);
+            z-index: 300;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+        .preview-drawer.active {
+            left: 0;
+        }
+
+        .sidebar-logo-box {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #ffffff;
+            border: 1.5px solid var(--gold-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .sidebar-logo-box img { width: 100%; height: 100%; object-fit: cover; }
+        .sidebar-logo-box span { color: #0b3d1b; font-weight: 800; font-size: 18px; font-family: var(--font-family); }
+
+        .preview-sidebar-item a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--text-color);
+            text-decoration: none;
+            font-family: var(--font-family);
+            font-size: 12px;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.12);
+            transition: all 0.2s ease;
+        }
+        .preview-sidebar-item a:hover {
+            background-color: rgba(10, 77, 37, 0.7);
+            color: var(--text-hover);
+            padding-left: 20px;
+        }
+
+        /* Body Container */
+        .preview-body {
+            position: absolute;
+            top: var(--header-height);
+            bottom: var(--footer-height);
+            left: 0;
+            width: 100%;
+            overflow-y: auto;
+            padding: 14px 12px;
+            box-sizing: border-box;
+            background-color: var(--body-bg);
+        }
+
+        /* Footer Bar */
+        .preview-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--footer-height);
+            background-color: var(--bg-container);
+            padding: 6px 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            box-sizing: border-box;
+            border-top: 1.5px solid var(--gold-border);
+            z-index: 100;
+        }
+
+        .footer-btn {
+            background: linear-gradient(180deg, var(--btn-bg-start) 0%, var(--btn-bg-end) 100%);
+            border: 1.5px solid var(--gold-border);
+            box-shadow: inset 0 1px 1px var(--gold-border-inner), inset 0 -1.5px 3px rgba(0,0,0,0.8), 0 2px 6px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            height: 36px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+        .footer-btn:active {
+            transform: scale(0.96);
+        }
+        .footer-btn::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 42%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 100%);
+            border-radius: 50px 50px 0 0; pointer-events: none;
+        }
+
+        .btn-pill { 
+            border-radius: 50px; 
+            padding: 0 8px; 
+            flex: 1 1 0px; 
+            min-width: 0; 
+            gap: 5px; 
+        }
+        .btn-square { 
+            width: 38px; 
+            border-radius: 10px; 
+            padding: 2px; 
+            flex-shrink: 0; 
+        }
+
+        /* Floating Center Button (FAB Mode) */
+        .btn-fab {
+            width: 48px !important;
+            height: 48px !important;
+            border-radius: 50% !important;
+            margin-top: -18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8), 0 0 12px var(--gold-border) !important;
+            border: 2px solid var(--gold-border) !important;
+            z-index: 150;
+        }
+        .btn-fab::before {
+            border-radius: 50% 50% 0 0 !important;
+        }
+
+        .btn-target-text {
+            color: var(--text-color); 
+            font-family: var(--font-family); 
+            font-size: clamp(9px, 2.7vw, 10.5px);
+            font-weight: 700; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.95);
+            letter-spacing: -0.2px;
+        }
+
+        .icon-box { 
+            width: 18px; 
+            height: 18px; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            flex-shrink: 0; 
+            color: var(--text-color);
+        }
+        .icon-box img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: contain; 
+            border-radius: 3px; 
+            display: block;
+        }
+        .icon-box svg { 
+            width: 100%; 
+            height: 100%; 
+            display: block;
+        }
+    </style>
+</head>
+<body class="p-3 md:p-6">
+
+    <div class="max-w-6xl mx-auto space-y-6">
+        <!-- Control Panel Header -->
+        <header class="text-center">
+            <h1 class="text-2xl font-bold text-amber-400">Section-by-Section App Frame Builder</h1>
+            <p class="text-xs text-gray-400 mt-1">Live edit every parameter below. All footer icons and layouts update in real time.</p>
+        </header>
+
+        <!-- QUICK PRESET PALETTES -->
+        <div class="bg-slate-900 border border-slate-700 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2">
+            <span class="text-xs font-bold text-amber-300">Quick Themes:</span>
+            <div class="flex flex-wrap gap-2 text-xs">
+                <button type="button" onclick="applyTheme('#031409','#072b13','#0a4d25','#042611','#D4AF37','#fce7aa','#ffffff')" class="px-2.5 py-1 bg-emerald-950 border border-amber-400 rounded hover:brightness-125 text-amber-200">Emerald Gold</button>
+                <button type="button" onclick="applyTheme('#020617','#0f172a','#1e293b','#020617','#38bdf8','#bae6fd','#ffffff')" class="px-2.5 py-1 bg-sky-950 border border-sky-400 rounded hover:brightness-125 text-sky-200">Cyber Blue</button>
+                <button type="button" onclick="applyTheme('#1a0505','#2a0808','#5c1212','#1c0505','#eab308','#fed7aa','#ffffff')" class="px-2.5 py-1 bg-red-950 border border-yellow-500 rounded hover:brightness-125 text-amber-100">Ruby Luxury</button>
+                <button type="button" onclick="applyTheme('#0f0f10','#18181b','#27272a','#09090b','#d4d4d8','#f4f4f5','#ffffff')" class="px-2.5 py-1 bg-zinc-900 border border-zinc-500 rounded hover:brightness-125 text-zinc-200">Obsidian Dark</button>
+            </div>
+        </div>
+
+        <!-- SECTION 1: COLOR PALETTE -->
+        <div class="bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-3">
+            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider border-b border-slate-800 pb-2">1. Color Palette & Theme Matching</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 text-xs">
+                <div>
+                    <label class="block text-gray-400 mb-1">Main Body BG</label>
+                    <input type="color" id="cfg-body-bg" value="#031409" class="w-full h-8 rounded bg-slate-800 border border-slate-700 cursor-pointer">
+                </div>
+                <div>
+                    <label class="block text-gray-400 mb-1">Bar & Drawer BG</label>
+                    <input type="color" id="cfg-bg-container" value="#072b13" class="w-full h-8 rounded bg-slate-800 border border-slate-700 cursor-pointer">
+                </div>
+                <div>
+                    <label class="block text-gray-400 mb-1">Gradient Start</label>
+                    <input type="color" id="cfg-btn-bg-start" value="#0a4d25" class="w-full h-8 rounded bg-slate-800 border border-slate-700 cursor-pointer">
+                </div>
+                <div>
+                    <label class="block text-gray-400 mb-1">Gradient End</label>
+                    <input type="color" id="cfg-btn-bg-end" value="#042611" class="w-full h-8 rounded bg-slate-800 border border-slate-700 cursor-pointer">
+                </div>
+                <div>
+                    <label class="block text-gray-400 mb-1">Gold Border</label>
+                    <input type="color" id="cfg-gold-border" value="#D4AF37" class="w-full h-8 rounded bg-slate-800 border border-slate-700 cursor-pointer">
+                </div>
+                <div>
+                    <label class="block text-gray-400 mb-1">Text Color</label>
+                    <input type="color" id="cfg-text-color" value="#fce7aa" class="w-full h-8 rounded bg-slate-800 border border-slate-700 cursor-pointer">
+                </div>
+                <div>
+                    <label class="block text-gray-400 mb-1">Hover Color</label>
+                    <input type="color" id="cfg-text-hover" value="#ffffff" class="w-full h-8 rounded bg-slate-800 border border-slate-700 cursor-pointer">
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: HEADER SETTINGS -->
+        <div class="bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-3">
+            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider border-b border-slate-800 pb-2">2. Header Bar Settings</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                    <label class="block text-gray-400 mb-1">Header Title Text</label>
+                    <input type="text" id="cfg-header-title" value="IN THE NAME OF THE INFINITE, ETERNAL MAJESTIC CREATOR." class="w-full p-2 bg-slate-800 border border-slate-700 rounded text-amber-200">
+                </div>
+                <div>
+                    <label class="block text-gray-400 mb-1">Menu Button Label</label>
+                    <input type="text" id="cfg-menu-label" value="MENU" class="w-full p-2 bg-slate-800 border border-slate-700 rounded text-amber-200">
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: SIDEBAR MENU SETTINGS -->
+        <div class="bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-3">
+            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider border-b border-slate-800 pb-2">3. Sidebar Drawer & Sub-Menu Settings</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs mb-3">
+                <div>
+                    <label class="block text-gray-400 mb-1">Logo Picture Link (Optional URL)</label>
+                    <input type="text" id="cfg-logo-url" placeholder="https://domain.com/logo.png" class="w-full p-2 bg-slate-800 border border-slate-700 rounded text-gray-200">
+                </div>
+                <div>
+                    <label class="block text-gray-400 mb-1">Company / Title Name</label>
+                    <input type="text" id="cfg-company-name" value="SEO24ONLINE" class="w-full p-2 bg-slate-800 border border-slate-700 rounded text-gray-200">
+                </div>
+                <div>
+                    <label class="block text-gray-400 mb-1">Company Subtitle</label>
+                    <input type="text" id="cfg-company-sub" value="App Development Co." class="w-full p-2 bg-slate-800 border border-slate-700 rounded text-gray-200">
+                </div>
+            </div>
+
+            <!-- Sub Menu Links Inputs -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+                <div class="bg-slate-800/50 p-2.5 rounded border border-slate-800 space-y-1.5">
+                    <span class="font-bold text-amber-400">Sub Menu Item 1</span>
+                    <input type="text" id="cfg-item1-text" value="HOME" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded">
+                    <input type="text" id="cfg-item1-url" value="https://sahidulbd.com" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded text-gray-400">
+                </div>
+                <div class="bg-slate-800/50 p-2.5 rounded border border-slate-800 space-y-1.5">
+                    <span class="font-bold text-amber-400">Sub Menu Item 2</span>
+                    <input type="text" id="cfg-item2-text" value="SUPPORT" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded">
+                    <input type="text" id="cfg-item2-url" value="https://sahidulbd.com/support" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded text-gray-400">
+                </div>
+                <div class="bg-slate-800/50 p-2.5 rounded border border-slate-800 space-y-1.5">
+                    <span class="font-bold text-amber-400">Sub Menu Item 3</span>
+                    <input type="text" id="cfg-item3-text" value="OUR PRODUCT" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded">
+                    <input type="text" id="cfg-item3-url" value="https://sahidulbd.com/products" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded text-gray-400">
+                </div>
+                <div class="bg-slate-800/50 p-2.5 rounded border border-slate-800 space-y-1.5">
+                    <span class="font-bold text-amber-400">Sub Menu Item 4</span>
+                    <input type="text" id="cfg-item4-text" value="ABOUT US" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded">
+                    <input type="text" id="cfg-item4-url" value="https://sahidulbd.com/about" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded text-gray-400">
+                </div>
+                <div class="bg-slate-800/50 p-2.5 rounded border border-slate-800 space-y-1.5">
+                    <span class="font-bold text-amber-400">Sub Menu Item 5</span>
+                    <input type="text" id="cfg-item5-text" value="CONTACT US" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded">
+                    <input type="text" id="cfg-item5-url" value="https://sahidulbd.com/contact" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded text-gray-400">
+                </div>
+                <div class="bg-slate-800/50 p-2.5 rounded border border-slate-800 space-y-1.5">
+                    <span class="font-bold text-amber-400">Sub Menu Item 6</span>
+                    <input type="text" id="cfg-item6-text" value="PRIVACY" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded">
+                    <input type="text" id="cfg-item6-url" value="https://sahidulbd.com/privacy" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded text-gray-400">
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 4: FOOTER BUTTONS & ICONS -->
+        <div class="bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-3">
+            <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-2">
+                <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider">4. Footer Navigation Buttons & Icon Options</h2>
+                <!-- Modern FAB Center Button Toggle -->
+                <label class="flex items-center gap-2 cursor-pointer text-xs text-amber-300">
+                    <input type="checkbox" id="cfg-fab-toggle" class="rounded bg-slate-800 border-slate-700 text-amber-500 focus:ring-0">
+                    <span>Floating Raised Center Button (Modern FAB)</span>
+                </label>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                <!-- Left Button -->
+                <div class="bg-slate-800/50 p-2.5 rounded border border-slate-800 space-y-2">
+                    <span class="font-bold text-amber-400 flex items-center justify-between">
+                        Left Button
+                        <span class="text-[10px] text-gray-400 font-normal">Pill Style</span>
+                    </span>
+                    <input type="text" id="cfg-foot-left-text" value="Contact to Developer" placeholder="Button Text" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded">
+                    <div>
+                        <label class="text-[10px] text-gray-400 block mb-0.5">Icon Preset:</label>
+                        <select id="cfg-foot-left-icon-preset" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded text-amber-200">
+                            <option value="code" selected>Code / Developer</option>
+                            <option value="phone">Phone / Contact</option>
+                            <option value="whatsapp">WhatsApp</option>
+                            <option value="home">Home</option>
+                            <option value="calendar">Calendar</option>
+                            <option value="globe">Globe / Web</option>
+                            <option value="user">User Profile</option>
+                            <option value="star">Star / Favorite</option>
+                        </select>
+                    </div>
+                    <input type="text" id="cfg-foot-left-img" placeholder="Custom Picture URL (Optional)" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded">
+                    <input type="text" id="cfg-foot-left-url" value="https://sahidulbd.com/contact" placeholder="Target Link URL" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded text-gray-400">
+                </div>
+
+                <!-- Center Button -->
+                <div class="bg-slate-800/50 p-2.5 rounded border border-slate-800 space-y-2">
+                    <span class="font-bold text-amber-400 flex items-center justify-between">
+                        Center Button
+                        <span class="text-[10px] text-gray-400 font-normal">Action Button</span>
+                    </span>
+                    <div>
+                        <label class="text-[10px] text-gray-400 block mb-0.5">Icon Preset:</label>
+                        <select id="cfg-foot-center-icon-preset" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded text-amber-200">
+                            <option value="calendar" selected>Calendar / Schedule</option>
+                            <option value="home">Home Screen</option>
+                            <option value="globe">Web / Globe</option>
+                            <option value="code">Code / Terminal</option>
+                            <option value="bell">Notification Bell</option>
+                            <option value="star">Star</option>
+                            <option value="cart">Cart / Store</option>
+                        </select>
+                    </div>
+                    <input type="text" id="cfg-foot-center-img" placeholder="Custom Picture URL (Optional)" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded">
+                    <input type="text" id="cfg-foot-center-url" value="https://sahidulbd.com/schedule" placeholder="Target Link URL" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded text-gray-400">
+                </div>
+
+                <!-- Right Button -->
+                <div class="bg-slate-800/50 p-2.5 rounded border border-slate-800 space-y-2">
+                    <span class="font-bold text-amber-400 flex items-center justify-between">
+                        Right Button
+                        <span class="text-[10px] text-gray-400 font-normal">Pill Style</span>
+                    </span>
+                    <input type="text" id="cfg-foot-right-text" value="Go to Web Version" placeholder="Button Text" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded">
+                    <div>
+                        <label class="text-[10px] text-gray-400 block mb-0.5">Icon Preset:</label>
+                        <select id="cfg-foot-right-icon-preset" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded text-amber-200">
+                            <option value="globe" selected>Globe / Web</option>
+                            <option value="cart">Shopping Cart</option>
+                            <option value="home">Home</option>
+                            <option value="star">Star / Premium</option>
+                            <option value="user">User Account</option>
+                            <option value="phone">Phone / Call</option>
+                        </select>
+                    </div>
+                    <input type="text" id="cfg-foot-right-img" placeholder="Custom Picture URL (Optional)" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded">
+                    <input type="text" id="cfg-foot-right-url" value="https://sahidulbd.com" placeholder="Target Link URL" class="w-full p-1.5 bg-slate-800 border border-slate-700 rounded text-gray-400">
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 5: MAIN APP BODY CONTENT -->
+        <div class="bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-3">
+            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider border-b border-slate-800 pb-2">5. Main App Body Content (Paste Custom HTML)</h2>
+            <div class="text-xs space-y-2">
+                <label class="block text-gray-400">Paste your main application HTML code below:</label>
+                <textarea id="cfg-body-html" rows="4" placeholder="<div>Your main HTML code here...</div>" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded text-amber-100 font-mono text-xs focus:ring-1 focus:ring-amber-500 focus:outline-none"></textarea>
+            </div>
+        </div>
+
+        <!-- EXPORT ACTION -->
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-3 bg-slate-900 border border-slate-700 rounded-xl p-4">
+            <span class="text-xs text-gray-400 font-semibold">Developed by © Mohammad Sahidul Islam</span>
+            <button id="export-code-btn" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded transition-all shadow-lg active:scale-95">
+                Copy Clean Production App Code
+            </button>
+        </div>
+
+        <!-- LIVE MOBILE PREVIEW FRAME -->
+        <div class="py-4">
+            <h2 class="text-center text-xs font-bold text-amber-400 uppercase tracking-widest mb-3">Live Mobile App Frame Preview</h2>
+            <div class="preview-phone-frame">
+                
+                <!-- HEADER -->
+                <header class="preview-header">
+                    <button class="preview-menu-btn" id="prev-menu-btn">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                        <span id="prev-menu-text">MENU</span>
+                    </button>
+                    <div class="preview-header-title" id="prev-header-title">IN THE NAME OF THE INFINITE, ETERNAL MAJESTIC CREATOR.</div>
+                </header>
+
+                <!-- OVERLAY & DRAWER -->
+                <div class="preview-overlay" id="prev-overlay"></div>
+                <nav class="preview-drawer" id="prev-drawer">
+                    <div class="p-3 border-b border-amber-500/30 flex items-center justify-between bg-emerald-950/40">
+                        <div class="flex items-center gap-2.5">
+                            <div class="sidebar-logo-box" id="prev-logo-box">
+                                <span>S</span>
+                            </div>
+                            <div>
+                                <div class="text-amber-400 font-bold text-xs uppercase" id="prev-company-name">SEO24ONLINE</div>
+                                <div class="text-gray-300 text-[10px]" id="prev-company-sub">App Development Co.</div>
+                            </div>
+                        </div>
+                        <button class="text-amber-400 text-lg px-2 hover:scale-110 transition-transform" id="prev-close-btn">&times;</button>
+                    </div>
+
+                    <ul class="list-none p-0 m-0 overflow-y-auto flex-1">
+                        <li class="preview-sidebar-item"><a href="#" id="prev-item1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span id="prev-item1-lbl">HOME</span></a></li>
+                        <li class="preview-sidebar-item"><a href="#" id="prev-item2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span id="prev-item2-lbl">SUPPORT</span></a></li>
+                        <li class="preview-sidebar-item"><a href="#" id="prev-item3"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span id="prev-item3-lbl">OUR PRODUCT</span></a></li>
+                        <li class="preview-sidebar-item"><a href="#" id="prev-item4"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span id="prev-item4-lbl">ABOUT US</span></a></li>
+                        <li class="preview-sidebar-item"><a href="#" id="prev-item5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span id="prev-item5-lbl">CONTACT US</span></a></li>
+                        <li class="preview-sidebar-item"><a href="#" id="prev-item6"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span id="prev-item6-lbl">PRIVACY</span></a></li>
+                    </ul>
+                </nav>
+
+                <!-- RESPONSIVE BODY AREA -->
+                <main class="preview-body" id="prev-body-content">
+                    <div class="text-center py-24 text-gray-400 text-xs italic" id="prev-placeholder-text">
+                        Main app body area is ready.<br>Paste your application code in Section 5 above.
+                    </div>
+                </main>
+
+                <!-- FOOTER -->
+                <footer class="preview-footer" id="prev-footer">
+                    <a href="#" id="prev-foot-left-link" class="footer-btn btn-pill">
+                        <div class="icon-box" id="prev-foot-left-box"></div>
+                        <span class="btn-target-text" id="prev-foot-left-txt">Contact to Developer</span>
+                    </a>
+                    <a href="#" id="prev-foot-center-link" class="footer-btn btn-square">
+                        <div class="icon-box" id="prev-foot-center-box"></div>
+                    </a>
+                    <a href="#" id="prev-foot-right-link" class="footer-btn btn-pill">
+                        <div class="icon-box" id="prev-foot-right-box"></div>
+                        <span class="btn-target-text" id="prev-foot-right-txt">Go to Web Version</span>
+                    </a>
+                </footer>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Preview Script -->
+    <script>
+        const root = document.documentElement;
+
+        // Clean Vector SVG Icons
+        const SVG_ICONS = {
+            code: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>',
+            calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>',
+            globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>',
+            phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>',
+            whatsapp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>',
+            home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>',
+            user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
+            bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>',
+            star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>',
+            cart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>'
+        };
+
+        // Theme Application Function
+        window.applyTheme = function(bodyBg, bgContainer, btnStart, btnEnd, gold, text, hover) {
+            document.getElementById('cfg-body-bg').value = bodyBg;
+            document.getElementById('cfg-bg-container').value = bgContainer;
+            document.getElementById('cfg-btn-bg-start').value = btnStart;
+            document.getElementById('cfg-btn-bg-end').value = btnEnd;
+            document.getElementById('cfg-gold-border').value = gold;
+            document.getElementById('cfg-text-color').value = text;
+            document.getElementById('cfg-text-hover').value = hover;
+
+            root.style.setProperty('--body-bg', bodyBg);
+            root.style.setProperty('--bg-container', bgContainer);
+            root.style.setProperty('--btn-bg-start', btnStart);
+            root.style.setProperty('--btn-bg-end', btnEnd);
+            root.style.setProperty('--gold-border', gold);
+            root.style.setProperty('--text-color', text);
+            root.style.setProperty('--text-hover', hover);
+        };
+
+        // Color Palette Listeners
+        document.getElementById('cfg-body-bg').addEventListener('input', (e) => root.style.setProperty('--body-bg', e.target.value));
+        document.getElementById('cfg-bg-container').addEventListener('input', (e) => root.style.setProperty('--bg-container', e.target.value));
+        document.getElementById('cfg-btn-bg-start').addEventListener('input', (e) => root.style.setProperty('--btn-bg-start', e.target.value));
+        document.getElementById('cfg-btn-bg-end').addEventListener('input', (e) => root.style.setProperty('--btn-bg-end', e.target.value));
+        document.getElementById('cfg-gold-border').addEventListener('input', (e) => root.style.setProperty('--gold-border', e.target.value));
+        document.getElementById('cfg-text-color').addEventListener('input', (e) => root.style.setProperty('--text-color', e.target.value));
+        document.getElementById('cfg-text-hover').addEventListener('input', (e) => root.style.setProperty('--text-hover', e.target.value));
+
+        // Header Listeners
+        document.getElementById('cfg-header-title').addEventListener('input', (e) => document.getElementById('prev-header-title').innerText = e.target.value);
+        document.getElementById('cfg-menu-label').addEventListener('input', (e) => document.getElementById('prev-menu-text').innerText = e.target.value);
+
+        // Sidebar Header Listeners
+        document.getElementById('cfg-company-name').addEventListener('input', (e) => document.getElementById('prev-company-name').innerText = e.target.value);
+        document.getElementById('cfg-company-sub').addEventListener('input', (e) => document.getElementById('prev-company-sub').innerText = e.target.value);
+        document.getElementById('cfg-logo-url').addEventListener('input', (e) => {
+            const url = e.target.value.trim();
+            const logoBox = document.getElementById('prev-logo-box');
+            if (url) {
+                logoBox.innerHTML = `<img src="${url}" alt="Logo" onerror="this.parentElement.innerHTML='<span>S</span>'">`;
+            } else {
+                logoBox.innerHTML = '<span>S</span>';
+            }
+        });
+
+        // Sub Menu Item Text Listeners
+        for (let i = 1; i <= 6; i++) {
+            document.getElementById(`cfg-item${i}-text`).addEventListener('input', (e) => {
+                document.getElementById(`prev-item${i}-lbl`).innerText = e.target.value;
+            });
+            document.getElementById(`cfg-item${i}-url`).addEventListener('input', (e) => {
+                document.getElementById(`prev-item${i}`).href = e.target.value;
+            });
+        }
+
+        // --- SAFE ICON PARSER (No HTML quote collisions) ---
+        function getIconHtml(presetValue, customInput) {
+            if (customInput && customInput.trim() !== '') {
+                const val = customInput.trim();
+                // Raw SVG input
+                if (val.startsWith('<svg') && val.endsWith('</svg>')) {
+                    return val;
+                }
+                // If user pasted an <img> tag, extract the clean src URL
+                const imgMatch = val.match(/src=["']([^"']+)["']/i);
+                const cleanUrl = imgMatch ? imgMatch[1] : val.replace(/['"<>\s]/g, '');
+                return `<img src="${cleanUrl}" alt="icon">`;
+            }
+            return SVG_ICONS[presetValue] || SVG_ICONS.code;
+        }
+
+        function updateFooterIcons() {
+            // Left Button
+            const leftPreset = document.getElementById('cfg-foot-left-icon-preset').value;
+            const leftImg = document.getElementById('cfg-foot-left-img').value;
+            document.getElementById('prev-foot-left-box').innerHTML = getIconHtml(leftPreset, leftImg);
+
+            // Center Button
+            const centerPreset = document.getElementById('cfg-foot-center-icon-preset').value;
+            const centerImg = document.getElementById('cfg-foot-center-img').value;
+            document.getElementById('prev-foot-center-box').innerHTML = getIconHtml(centerPreset, centerImg);
+
+            // Right Button
+            const rightPreset = document.getElementById('cfg-foot-right-icon-preset').value;
+            const rightImg = document.getElementById('cfg-foot-right-img').value;
+            document.getElementById('prev-foot-right-box').innerHTML = getIconHtml(rightPreset, rightImg);
+        }
+
+        // Footer Text and Link Listeners
+        document.getElementById('cfg-foot-left-text').addEventListener('input', (e) => document.getElementById('prev-foot-left-txt').innerText = e.target.value);
+        document.getElementById('cfg-foot-right-text').addEventListener('input', (e) => document.getElementById('prev-foot-right-txt').innerText = e.target.value);
+        
+        document.getElementById('cfg-foot-left-url').addEventListener('input', (e) => document.getElementById('prev-foot-left-link').href = e.target.value);
+        document.getElementById('cfg-foot-center-url').addEventListener('input', (e) => document.getElementById('prev-foot-center-link').href = e.target.value);
+        document.getElementById('cfg-foot-right-url').addEventListener('input', (e) => document.getElementById('prev-foot-right-link').href = e.target.value);
+
+        // Footer Icon Presets & Image Input Listeners
+        ['cfg-foot-left-icon-preset', 'cfg-foot-center-icon-preset', 'cfg-foot-right-icon-preset',
+         'cfg-foot-left-img', 'cfg-foot-center-img', 'cfg-foot-right-img'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateFooterIcons);
+            document.getElementById(id).addEventListener('change', updateFooterIcons);
+        });
+
+        // Modern FAB Toggle Listener
+        const fabToggle = document.getElementById('cfg-fab-toggle');
+        const prevCenterBtn = document.getElementById('prev-foot-center-link');
+        fabToggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                prevCenterBtn.classList.add('btn-fab');
+            } else {
+                prevCenterBtn.classList.remove('btn-fab');
+            }
+        });
+
+        // Initialize icons on load
+        updateFooterIcons();
+
+        // Section 5: Main Body Content Listener
+        document.getElementById('cfg-body-html').addEventListener('input', (e) => {
+            const bodyContent = document.getElementById('prev-body-content');
+            if (e.target.value.trim() !== '') {
+                bodyContent.innerHTML = e.target.value;
+            } else {
+                bodyContent.innerHTML = `<div class="text-center py-24 text-gray-400 text-xs italic">Main app body area is ready.<br>Paste your application code in Section 5 above.</div>`;
+            }
+        });
+
+        // Drawer Toggle
+        const drawer = document.getElementById('prev-drawer');
+        const overlay = document.getElementById('prev-overlay');
+        function toggleDrawer() {
+            drawer.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+        document.getElementById('prev-menu-btn').addEventListener('click', toggleDrawer);
+        document.getElementById('prev-close-btn').addEventListener('click', toggleDrawer);
+        overlay.addEventListener('click', toggleDrawer);
+
+        // Export Clean Production Code
+        document.getElementById('export-code-btn').addEventListener('click', () => {
+            const bodyBg = document.getElementById('cfg-body-bg').value;
+            const bgContainer = document.getElementById('cfg-bg-container').value;
+            const btnBgStart = document.getElementById('cfg-btn-bg-start').value;
+            const btnBgEnd = document.getElementById('cfg-btn-bg-end').value;
+            const goldBorder = document.getElementById('cfg-gold-border').value;
+            const textColor = document.getElementById('cfg-text-color').value;
+            const textHover = document.getElementById('cfg-text-hover').value;
+            const logoUrl = document.getElementById('cfg-logo-url').value.trim();
+            const bodyHtml = document.getElementById('cfg-body-html').value;
+            const isFab = fabToggle.checked;
+
+            const leftIconHtml = getIconHtml(document.getElementById('cfg-foot-left-icon-preset').value, document.getElementById('cfg-foot-left-img').value);
+            const centerIconHtml = getIconHtml(document.getElementById('cfg-foot-center-icon-preset').value, document.getElementById('cfg-foot-center-img').value);
+            const rightIconHtml = getIconHtml(document.getElementById('cfg-foot-right-icon-preset').value, document.getElementById('cfg-foot-right-img').value);
+
+            const exportCode = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>App Frame</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-container: ${bodyBg};
+            --body-bg: ${bodyBg};
+            --btn-bg-start: ${btnBgStart};
+            --btn-bg-end: ${btnBgEnd};
+            --gold-border: ${goldBorder};
+            --gold-border-inner: #f9e29c;
+            --text-color: ${textColor};
+            --text-hover: ${textHover};
+            --font-family: 'Cinzel', serif;
+            --header-height: 48px;
+            --footer-height: 52px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { width: 100%; height: 100%; overflow: hidden; background-color: var(--body-bg); font-family: 'Poppins', sans-serif; }
+        .app-wrapper { display: flex; flex-direction: column; width: 100%; height: 100%; position: relative; }
+        
+        /* Header */
+        .app-header { position: fixed; top: 0; left: 0; width: 100%; height: var(--header-height); background-color: var(--bg-container); border-bottom: 1.5px solid var(--gold-border); display: flex; align-items: center; justify-content: space-between; padding: 0 10px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.6); }
+        .menu-btn { background: linear-gradient(180deg, var(--btn-bg-start) 0%, var(--btn-bg-end) 100%); border: 1.5px solid var(--gold-border); color: var(--text-color); padding: 4px 10px; border-radius: 6px; font-family: var(--font-family); font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: inset 0 1px 1px var(--gold-border-inner); }
+        .header-title { color: var(--text-color); font-family: var(--font-family); font-size: 11px; font-weight: 700; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 8px; flex: 1; }
+        
+        /* Drawer */
+        #sidebar-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(3px); z-index: 1001; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        #sidebar-overlay.active { opacity: 1; pointer-events: auto; }
+        #sidebar-drawer { position: fixed; top: 0; left: -285px; width: 285px; height: 100%; background-color: var(--bg-container); border-right: 2px solid var(--gold-border); z-index: 1002; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; box-shadow: 5px 0 25px rgba(0,0,0,0.85); }
+        #sidebar-drawer.active { left: 0; }
+        .sidebar-header { padding: 12px 14px; border-bottom: 1px solid rgba(212, 175, 55, 0.3); display: flex; align-items: center; justify-content: space-between; background: rgba(4, 38, 17, 0.6); }
+        .sidebar-logo-box { width: 36px; height: 36px; border-radius: 6px; overflow: hidden; background: #ffffff; border: 1.5px solid var(--gold-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .sidebar-logo-box img { width: 100%; height: 100%; object-fit: cover; }
+        .sidebar-logo-box span { color: #0b3d1b; font-weight: 800; font-size: 18px; font-family: var(--font-family); }
+        .sidebar-title-text { color: var(--gold-border); font-family: var(--font-family); font-size: 12px; font-weight: 700; line-height: 1.1; text-transform: uppercase; }
+        .sidebar-subtitle-text { color: #d1d5db; font-size: 10px; line-height: 1.1; }
+        .close-btn { background: none; border: none; color: var(--gold-border); font-size: 20px; cursor: pointer; padding: 2px 6px; }
+        .sidebar-menu-list { list-style: none; padding: 8px 0; margin: 0; overflow-y: auto; flex: 1; }
+        .sidebar-item a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text-color); text-decoration: none; font-family: var(--font-family); font-size: 12px; font-weight: 600; border-bottom: 1px solid rgba(212, 175, 55, 0.12); transition: all 0.2s ease; }
+        .sidebar-item a:hover { background-color: rgba(10, 77, 37, 0.6); color: var(--text-hover); padding-left: 20px; }
+        
+        /* Body with Safe-Area offset */
+        .app-body-container { 
+            margin-top: var(--header-height); 
+            height: calc(100vh - var(--header-height)); 
+            width: 100%; 
+            overflow-y: auto; 
+            overflow-x: hidden; 
+            padding: 12px 12px calc(var(--footer-height) + env(safe-area-inset-bottom, 10px) + 16px) 12px; 
+            box-sizing: border-box; 
+        }
+        
+        /* Mobile Sticky Footer */
+        .sticky-footer-bar { 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            height: calc(var(--footer-height) + env(safe-area-inset-bottom, 0px)); 
+            background-color: var(--bg-container); 
+            padding: 6px 8px max(6px, env(safe-area-inset-bottom, 6px)) 8px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            gap: 6px; 
+            box-sizing: border-box; 
+            border-top: 1.5px solid var(--gold-border); 
+            z-index: 999; 
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.8); 
+        }
+        .custom-footer-btn { 
+            background: linear-gradient(180deg, var(--btn-bg-start) 0%, var(--btn-bg-end) 100%); 
+            border: 1.5px solid var(--gold-border); 
+            box-shadow: inset 0 1px 1px var(--gold-border-inner), inset 0 -1.5px 3px rgba(0,0,0,0.8), 0 2px 6px rgba(0,0,0,0.5); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            text-decoration: none; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            position: relative; 
+            overflow: hidden; 
+            height: 36px; 
+            box-sizing: border-box;
+        }
+        .custom-footer-btn::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 42%; background: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 100%); border-radius: 50px 50px 0 0; pointer-events: none; }
+        .btn-pill { border-radius: 50px; padding: 0 8px; flex: 1 1 0px; min-width: 0; gap: 5px; }
+        .btn-square { width: 38px; border-radius: 10px; padding: 2px; flex-shrink: 0; }
+        .btn-fab { width: 48px !important; height: 48px !important; border-radius: 50% !important; margin-top: -16px; box-shadow: 0 4px 15px rgba(0,0,0,0.8), 0 0 12px var(--gold-border) !important; border: 2px solid var(--gold-border) !important; z-index: 1050; }
+        .btn-fab::before { border-radius: 50% 50% 0 0 !important; }
+        .btn-target-text { color: var(--text-color); font-family: var(--font-family); font-size: clamp(9px, 2.7vw, 10.5px); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 1px 1px 2px rgba(0,0,0,0.95); letter-spacing: -0.2px; }
+        .icon-box { width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--text-color); }
+        .icon-box img { width: 100%; height: 100%; object-fit: contain; display: block; }
+        .icon-box svg { width: 100%; height: 100%; display: block; }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <header class="app-header">
+            <button id="open-menu-btn" class="menu-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <span>${document.getElementById('cfg-menu-label').value}</span>
+            </button>
+            <div class="header-title">${document.getElementById('cfg-header-title').value}</div>
+        </header>
+
+        <div id="sidebar-overlay"></div>
+        <nav id="sidebar-drawer">
+            <div class="sidebar-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="sidebar-logo-box">
+                        ${logoUrl ? `<img src="${logoUrl}" alt="Logo">` : `<span>S</span>`}
+                    </div>
+                    <div>
+                        <div class="sidebar-title-text">${document.getElementById('cfg-company-name').value}</div>
+                        <div class="sidebar-subtitle-text">${document.getElementById('cfg-company-sub').value}</div>
+                    </div>
+                </div>
+                <button id="close-menu-btn" class="close-btn">&times;</button>
+            </div>
+            <ul class="sidebar-menu-list">
+                <li class="sidebar-item"><a href="${document.getElementById('cfg-item1-url').value}" target="_blank"><span>${document.getElementById('cfg-item1-text').value}</span></a></li>
+                <li class="sidebar-item"><a href="${document.getElementById('cfg-item2-url').value}" target="_blank"><span>${document.getElementById('cfg-item2-text').value}</span></a></li>
+                <li class="sidebar-item"><a href="${document.getElementById('cfg-item3-url').value}" target="_blank"><span>${document.getElementById('cfg-item3-text').value}</span></a></li>
+                <li class="sidebar-item"><a href="${document.getElementById('cfg-item4-url').value}" target="_blank"><span>${document.getElementById('cfg-item4-text').value}</span></a></li>
+                <li class="sidebar-item"><a href="${document.getElementById('cfg-item5-url').value}" target="_blank"><span>${document.getElementById('cfg-item5-text').value}</span></a></li>
+                <li class="sidebar-item"><a href="${document.getElementById('cfg-item6-url').value}" target="_blank"><span>${document.getElementById('cfg-item6-text').value}</span></a></li>
+            </ul>
+        </nav>
+
+        <main class="app-body-container">
+            ${bodyHtml}
+        </main>
+
+        <footer class="sticky-footer-bar">
+            <a href="${document.getElementById('cfg-foot-left-url').value}" target="_blank" class="custom-footer-btn btn-pill">
+                <div class="icon-box">${leftIconHtml}</div>
+                <span class="btn-target-text">${document.getElementById('cfg-foot-left-text').value}</span>
+            </a>
+            <a href="${document.getElementById('cfg-foot-center-url').value}" target="_blank" class="custom-footer-btn ${isFab ? 'btn-fab' : 'btn-square'}">
+                <div class="icon-box">${centerIconHtml}</div>
+            </a>
+            <a href="${document.getElementById('cfg-foot-right-url').value}" target="_blank" class="custom-footer-btn btn-pill">
+                <div class="icon-box">${rightIconHtml}</div>
+                <span class="btn-target-text">${document.getElementById('cfg-foot-right-text').value}</span>
+            </a>
+        </footer>
+    </div>
+    <script>
+        const openBtn = document.getElementById('open-menu-btn');
+        const closeBtn = document.getElementById('close-menu-btn');
+        const drawer = document.getElementById('sidebar-drawer');
+        const overlay = document.getElementById('sidebar-overlay');
+        function toggleMenu() { drawer.classList.toggle('active'); overlay.classList.toggle('active'); }
+        openBtn.addEventListener('click', toggleMenu);
+        closeBtn.addEventListener('click', toggleMenu);
+        overlay.addEventListener('click', toggleMenu);
+    <\/script>
+</body>
+</html>
+<!-- Developed by © Mohammad Sahidul Islam -->`;
+
+            navigator.clipboard.writeText(exportCode).then(() => {
+                const btn = document.getElementById('export-code-btn');
+                const orig = btn.innerText;
+                btn.innerText = '✓ Copied Clean Production HTML Code!';
+                btn.classList.replace('bg-amber-500', 'bg-green-500');
+                setTimeout(() => {
+                    btn.innerText = orig;
+                    btn.classList.replace('bg-green-500', 'bg-amber-500');
+                }, 2000);
+            }).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = exportCode;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                alert('Production code copied to clipboard!');
+            });
+        });
+    </script>
+</body>
+</html>
